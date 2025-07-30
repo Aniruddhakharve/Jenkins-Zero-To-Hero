@@ -1,0 +1,41 @@
+pipeline {
+    agent {
+        docker {
+            image 'openjdk:17'
+        }
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Compiling Java Program inside Docker container...'
+                sh '''
+                    mkdir -p out
+                    javac -d out HelloWorld.java
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running Test...'
+                sh '''
+                    if grep -q "public static void main" HelloWorld.java; then
+                        echo "Test Passed: main method exists"
+                    else
+                        echo "Test Failed: main method not found"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Running Java app...'
+                sh 'java -cp out HelloWorld'
+            }
+        }
+    }
+}
+
